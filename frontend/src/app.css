@@ -1,0 +1,253 @@
+/* Universität Paderborn / UB Paderborn — green institutional theme (see https://www.ub.uni-paderborn.de/). */
+
+:root {
+  --upb-green: #00965e;
+  --upb-green-dark: #007a4d;
+  --upb-green-darker: #005c3a;
+  --upb-ink: #1c1c1c;
+  --upb-muted: #5c6560;
+  --upb-page: #eef1f0;
+  --upb-footer: var(--upb-green);
+  --upb-footer-ink: rgba(255, 255, 255, 0.95);
+  --upb-footer-link: rgba(255, 255, 255, 0.95);
+  --upb-footer-link-hover: #ffffff;
+  --bs-primary: var(--upb-green);
+  --bs-primary-rgb: 0, 150, 94;
+  --bs-link-color: #007a4d;
+  --bs-link-hover-color: #005237;
+  --bs-focus-ring-color: rgba(0, 150, 94, 0.35);
+  --bs-body-font-family: 'Source Sans 3', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue',
+    Arial, sans-serif;
+  --bs-body-color: var(--upb-ink);
+  --bs-body-bg: var(--upb-page);
+  --bs-border-radius: 0.25rem;
+}
+
+.ub-body {
+  font-family: var(--bs-body-font-family);
+  color: var(--bs-body-color);
+  background-color: var(--upb-page);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+#root {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.ub-topbar {
+  background: var(--upb-green-darker);
+  color: rgba(255, 255, 255, 0.92);
+  font-size: 0.8125rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.ub-topbar a {
+  color: rgba(255, 255, 255, 0.95);
+  text-decoration: none;
+}
+
+.ub-topbar a:hover {
+  color: #fff;
+  text-decoration: underline;
+}
+
+/* Main navbar — white bar + green accent, like UB header */
+.ub-header-main {
+  background: #fff;
+  border-bottom: 3px solid var(--upb-green);
+  box-shadow: 0 1px 3px rgba(0, 50, 35, 0.07);
+}
+
+.ub-header-main .navbar-toggler {
+  border-color: rgba(0, 92, 58, 0.25);
+}
+
+.ub-imagemark-link {
+  flex-shrink: 0;
+  line-height: 0;
+  display: block;
+}
+
+.ub-imagemark-link img {
+  height: 2.5rem;
+  width: auto;
+  display: block;
+}
+
+.ub-header-main .navbar-brand {
+  color: var(--upb-green-darker) !important;
+  gap: 0.75rem;
+}
+
+.ub-brand-title {
+  font-weight: 700;
+  font-size: 1.05rem;
+  line-height: 1.2;
+  letter-spacing: 0.01em;
+  color: var(--upb-green-darker);
+}
+
+.ub-brand-sub {
+  font-size: 0.78rem;
+  font-weight: 400;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--upb-muted);
+}
+
+.ub-header-main .nav-link {
+  color: var(--upb-ink) !important;
+  font-weight: 500;
+  border-radius: 0.2rem;
+  padding: 0.4rem 0.65rem !important;
+}
+
+.ub-header-main .nav-link:hover {
+  color: var(--upb-green) !important;
+  background: rgba(0, 150, 94, 0.08);
+}
+
+.ub-header-main .nav-link.active {
+  color: var(--upb-green-darker) !important;
+  background: rgba(0, 150, 94, 0.12);
+  font-weight: 600;
+}
+
+.ub-header-main .navbar-text {
+  color: var(--upb-muted) !important;
+  font-size: 0.9rem;
+}
+
+.ub-header-main .btn-outline-primary {
+  --bs-btn-color: var(--upb-green);
+  --bs-btn-border-color: var(--upb-green);
+  --bs-btn-hover-bg: var(--upb-green);
+  --bs-btn-hover-border-color: var(--upb-green);
+  --bs-btn-hover-color: #fff;
+}
+
+main {
+  min-height: calc(100vh - 11rem);
+  flex: 1;
+}
+
+/* Login / Register: center card in space above footer */
+main.ub-main-auth {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  width: 100%;
+  min-height: 0;
+  padding-block: 1rem;
+  flex: 1;
+}
+
+.ub-card {
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 60, 40, 0.06);
+}
+
+.ub-card .card-header {
+  background: rgba(0, 150, 94, 0.07);
+  border-bottom: 1px solid rgba(0, 150, 94, 0.14);
+  font-weight: 600;
+}
+
+.ub-footer {
+  background: var(--upb-footer);
+  color: var(--upb-footer-ink);
+  margin-top: auto;
+}
+
+.ub-footer a {
+  color: var(--upb-footer-link);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.ub-footer a:hover {
+  color: var(--upb-footer-link-hover);
+}
+
+.ub-footer-inner {
+  padding-top: 0.65rem;
+  padding-bottom: 0.65rem;
+}
+
+.ub-footer-logo {
+  max-width: min(100%, 11rem);
+  height: auto;
+}
+
+.ub-footer-address {
+  font-style: normal;
+  opacity: 0.92;
+  line-height: 1.35;
+}
+
+.ub-footer-legal {
+  background: rgba(0, 0, 0, 0.15);
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.page-heading {
+  color: var(--upb-ink);
+  font-weight: 700;
+}
+
+.text-upb-muted {
+  color: var(--upb-muted) !important;
+}
+
+.btn-primary {
+  --bs-btn-bg: var(--upb-green);
+  --bs-btn-border-color: var(--upb-green);
+  --bs-btn-hover-bg: var(--upb-green-dark);
+  --bs-btn-hover-border-color: var(--upb-green-dark);
+  --bs-btn-active-bg: var(--upb-green-darker);
+  --bs-btn-active-border-color: var(--upb-green-darker);
+  font-weight: 600;
+}
+
+.btn-outline-primary {
+  --bs-btn-color: var(--upb-green);
+  --bs-btn-border-color: var(--upb-green);
+  --bs-btn-hover-bg: var(--upb-green);
+  --bs-btn-hover-border-color: var(--upb-green);
+}
+
+.form-control:focus,
+.form-select:focus {
+  border-color: rgba(0, 150, 94, 0.55);
+  box-shadow: 0 0 0 0.2rem rgba(0, 150, 94, 0.18);
+}
+
+.badge.slot-pill {
+  min-width: 3.25rem;
+}
+
+.badge.bg-warning.text-dark {
+  background-color: #e8c468 !important;
+}
+
+.auth-card-logo {
+  height: 3.5rem;
+  width: auto;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.auth-card-branding .ub-brand-title {
+  font-size: 1.1rem;
+  margin-top: 0.25rem;
+}
+
+.letter-spacing-tight {
+  letter-spacing: 0.04em;
+}
