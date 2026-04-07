@@ -14,6 +14,37 @@ function frontendBase() {
   return process.env.FRONTEND_URL || 'http://localhost:3001';
 }
 
+/**
+ * Prefer X-Frontend-Origin from the SPA (always matches the tab’s port), then Origin / Referer, then FRONTEND_URL.
+ */
+function resolveFrontendBase(req) {
+  const fromClient = req.get('x-frontend-origin');
+  if (fromClient && /^https?:\/\//i.test(fromClient.trim())) {
+    try {
+      return new URL(fromClient.trim()).origin.replace(/\/$/, '');
+    } catch {
+      /* ignore */
+    }
+  }
+  const origin = req.get('origin');
+  if (origin && /^https?:\/\//i.test(origin)) {
+    return origin.replace(/\/$/, '');
+  }
+  const referer = req.get('referer');
+  if (referer) {
+    try {
+      return new URL(referer).origin.replace(/\/$/, '');
+    } catch {
+      /* ignore */
+    }
+  }
+  return frontendBase();
+}
+
+function cancelUrlForToken(req, token) {
+  return `${resolveFrontendBase(req)}/cancel/${token}`;
+}
+
 function sanitizeBookingList(rows) {
   return rows.map((b) => {
     const { cancel_token: _t, password_hash: _p, ...rest } = b;
@@ -57,7 +88,7 @@ function postCreate(req, res) {
   if (!result.ok) {
     return res.status(400).json({ errors: result.errors });
   }
-  const cancelUrl = `${frontendBase()}/cancel/${result.booking.cancel_token}`;
+  const cancelUrl = cancelUrlForToken(req, result.booking.cancel_token);
   return res.status(201).json({
     booking: omitCancelToken(result.booking),
     cancelUrl,
@@ -73,17 +104,26 @@ function getSuccess(req, res) {
   if (!booking || booking.user_id !== req.user.id) {
     return res.status(404).json({ error: 'Booking not found.' });
   }
-  const cancelUrl = `${frontendBase()}/cancel/${booking.cancel_token}`;
+  const cancelUrl = cancelUrlForToken(req, booking.cancel_token);
   return res.json({
     booking: omitCancelToken(booking),
     cancelUrl,
   });
 }
 
+function mineBookingPublicFields(b, req) {
+  const { cancel_token, ...rest } = b;
+  const out = { ...rest };
+  if (cancel_token) {
+    out.cancelUrl = cancelUrlForToken(req, cancel_token);
+  }
+  return out;
+}
+
 function getMine(req, res) {
   const { future, past } = bookingService.listMine(req.user.id);
   return res.json({
-    future: sanitizeBookingList(future),
+    future: future.map((b) => mineBookingPublicFields(b, req)),
     past: sanitizeBookingList(past),
   });
 }

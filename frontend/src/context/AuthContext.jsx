@@ -11,7 +11,7 @@ import {
   clearToken,
   authHeaders,
 } from '../authToken.js';
-import { apiUrl } from '../apiBase.js';
+import { apiUrl, frontendOriginHeader } from '../apiBase.js';
 
 const AuthContext = createContext(null);
 
@@ -50,7 +50,7 @@ export function AuthProvider({ children }) {
   const login = async ({ email, password }) => {
     const res = await fetch(apiUrl('/api/auth/login'), {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...frontendOriginHeader() },
       body: JSON.stringify({ email, password }),
     });
     const data = await res.json().catch(() => ({}));
@@ -66,7 +66,7 @@ export function AuthProvider({ children }) {
   const register = async (body) => {
     const res = await fetch(apiUrl('/api/auth/register'), {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...frontendOriginHeader() },
       body: JSON.stringify(body),
     });
     const data = await res.json().catch(() => ({}));
@@ -81,7 +81,10 @@ export function AuthProvider({ children }) {
   };
 
   const logout = async () => {
-    await fetch(apiUrl('/api/auth/logout'), { method: 'POST' });
+    await fetch(apiUrl('/api/auth/logout'), {
+      method: 'POST',
+      headers: { ...frontendOriginHeader() },
+    });
     clearToken();
     setUser(null);
   };

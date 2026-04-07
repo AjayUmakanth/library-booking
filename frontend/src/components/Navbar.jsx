@@ -53,8 +53,8 @@ export default function Navbar() {
                   </li>
                 </ul>
                 <ul className="navbar-nav ms-auto align-items-lg-center">
-                  <li className="nav-item me-lg-3">
-                    <span className="navbar-text">{user.name}</span>
+                  <li className="nav-item">
+                    <span className="navbar-text px-lg-1">{user.name}</span>
                   </li>
                   <li className="nav-item">
                     <button

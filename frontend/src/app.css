@@ -83,6 +83,21 @@
   gap: 0.75rem;
 }
 
+@media (min-width: 992px) {
+  .ub-header-main .navbar-collapse {
+    gap: 1.25rem;
+    align-items: center;
+  }
+}
+
+.ub-header-main .navbar-nav {
+  gap: 0.5rem;
+}
+
+.ub-header-main .navbar-nav.ms-auto:not(:only-child) {
+  gap: 0.75rem;
+}
+
 .ub-brand-title {
   font-weight: 700;
   font-size: 1.05rem;
@@ -103,7 +118,7 @@
   color: var(--upb-ink) !important;
   font-weight: 500;
   border-radius: 0.2rem;
-  padding: 0.4rem 0.65rem !important;
+  padding: 0.45rem 0.9rem !important;
 }
 
 .ub-header-main .nav-link:hover {

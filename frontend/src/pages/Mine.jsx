@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { authHeaders } from '../authToken.js';
 import { apiUrl } from '../apiBase.js';
 
@@ -9,7 +10,6 @@ function pad(n) {
 export default function Mine() {
   const [data, setData] = useState(null);
   const [error, setError] = useState('');
-  const [msg, setMsg] = useState('');
 
   async function load() {
     setError('');
@@ -25,22 +25,6 @@ export default function Mine() {
   useEffect(() => {
     load();
   }, []);
-
-  async function cancelBooking(id) {
-    if (!window.confirm('Cancel this booking?')) return;
-    setMsg('');
-    const res = await fetch(apiUrl(`/api/bookings/${id}/cancel`), {
-      method: 'POST',
-      headers: authHeaders(),
-    });
-    const json = await res.json().catch(() => ({}));
-    if (!res.ok) {
-      setMsg(json.error || 'Could not cancel.');
-      return;
-    }
-    setMsg('Booking cancelled.');
-    load();
-  }
 
   if (error) {
     return (
@@ -59,13 +43,6 @@ export default function Mine() {
   return (
     <div className="container py-4">
       <h1 className="h3 mb-4">My bookings</h1>
-      {msg && (
-        <div
-          className={`alert ${msg.includes('Could not') ? 'alert-danger' : 'alert-success'}`}
-        >
-          {msg}
-        </div>
-      )}
 
       <h2 className="h5 mb-3">Upcoming</h2>
       {!data.future?.length ? (
@@ -74,18 +51,9 @@ export default function Mine() {
         <div className="row g-3 mb-5">
           {data.future.map((b) => (
             <div className="col-md-6 col-lg-4" key={b.id}>
-              <div
-                className={`card h-100 ub-card border-primary border-opacity-50 ${
-                  b.isOngoing ? 'border-warning border-2' : ''
-                }`}
-              >
+              <div className="card h-100 ub-card border-primary border-opacity-50">
                 <div className="card-body">
-                  <h3 className="h6 card-title d-flex justify-content-between align-items-start gap-2">
-                    <span>{b.room_name}</span>
-                    {b.isOngoing && (
-                      <span className="badge bg-warning text-dark flex-shrink-0">Now</span>
-                    )}
-                  </h3>
+                  <h3 className="h6 card-title">{b.room_name}</h3>
                   <p className="mb-1">
                     <strong>{b.booking_date}</strong>
                   </p>
@@ -95,13 +63,14 @@ export default function Mine() {
                   <p className="small text-muted mb-3">
                     {b.purpose || 'No purpose noted'}
                   </p>
-                  <button
-                    type="button"
-                    className="btn btn-outline-danger btn-sm"
-                    onClick={() => cancelBooking(b.id)}
-                  >
-                    Cancel
-                  </button>
+                  {b.cancelUrl ? (
+                    <Link
+                      to={new URL(b.cancelUrl, window.location.origin).pathname}
+                      className="btn btn-outline-danger btn-sm"
+                    >
+                      Cancel
+                    </Link>
+                  ) : null}
                 </div>
               </div>
             </div>

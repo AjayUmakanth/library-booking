@@ -1,3 +1,5 @@
+import { frontendOriginHeader } from './apiBase.js';
+
 const STORAGE_KEY = 'library_booking_jwt';
 
 export function getToken() {
@@ -15,8 +17,10 @@ export function clearToken() {
 
 export function authHeaders() {
   const t = getToken();
-  if (!t) return {};
-  return { Authorization: `Bearer ${t}` };
+  return {
+    ...frontendOriginHeader(),
+    ...(t ? { Authorization: `Bearer ${t}` } : {}),
+  };
 }
 
 /** Merge JSON + bearer headers for fetch */

@@ -60,6 +60,7 @@ app.use(
       return callback(null, false);
     },
     credentials: true,
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Frontend-Origin'],
   })
 );
 app.use(express.json());

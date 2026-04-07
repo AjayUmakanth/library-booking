@@ -52,7 +52,7 @@ function create({
 function findById(id) {
   return db
     .prepare(
-      `SELECT b.*, r.name AS room_name, r.description AS room_description
+      `SELECT b.*, r.name AS room_name
        FROM bookings b
        JOIN rooms r ON r.id = b.room_id
        WHERE b.id = ?`

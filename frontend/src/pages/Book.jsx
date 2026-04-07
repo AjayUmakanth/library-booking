@@ -226,6 +226,47 @@ export default function Book() {
     );
   }
 
+  if (!data.availability.length) {
+    return (
+      <>
+        <div
+          className="modal fade show d-block"
+          tabIndex={-1}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="noRoomsTitle"
+        >
+          <div className="modal-dialog modal-dialog-centered">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h2 className="modal-title h5" id="noRoomsTitle">
+                  No rooms available
+                </h2>
+              </div>
+              <div className="modal-body">
+                <p className="mb-3">
+                  There are no rooms in the database yet. Create them with the seed script from the
+                  backend folder:
+                </p>
+                <pre className="bg-light border rounded p-3 small mb-3 mb-md-0">
+                  <code>
+                    cd backend{'\n'}
+                    npm run seed -- &lt;numberOfRooms&gt;{'\n'}
+                  </code>
+                </pre>
+                <p className="small text-muted mb-0">
+                  You will be asked to confirm deleting bookings and rooms, then whether to delete
+                  users. After seeding, reload this page in the browser.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="modal-backdrop fade show" />
+      </>
+    );
+  }
+
   const oh = data.openHour;
   const ch = data.closeHour;
 
@@ -316,31 +357,13 @@ export default function Book() {
             <div className="card ub-card">
               <div className="card-header d-flex justify-content-between align-items-center">
                 <strong>{row.room.name}</strong>
-                {row.room.capacity != null && (
-                  <span className="badge bg-secondary">
-                    Capacity {row.room.capacity}
-                  </span>
-                )}
               </div>
               <div className="card-body">
-                {row.ongoingSession && (
-                  <div className="alert alert-warning py-2 small mb-3">
-                    <strong>In progress now</strong> ({data.timeZone}):{' '}
-                    {String(row.ongoingSession.start_hour).padStart(2, '0')}:00–
-                    {String(row.ongoingSession.end_hour).padStart(2, '0')}:00
-                  </div>
-                )}
-                {row.room.description && (
-                  <p className="small text-muted mb-3">{row.room.description}</p>
-                )}
                 <div className="d-flex flex-wrap gap-1">
                   {row.slots.map((slot) => {
                     let cls = 'bg-primary';
                     let title = 'Available';
-                    if (slot.ongoing) {
-                      cls = 'bg-warning text-dark';
-                      title = 'Ongoing session';
-                    } else if (slot.occupied) {
+                    if (slot.occupied || slot.ongoing) {
                       cls = 'bg-danger';
                       title = 'Occupied';
                     }
@@ -357,8 +380,7 @@ export default function Book() {
                 </div>
                 <div className="small mt-2">
                   <span className="badge bg-primary">&nbsp;</span> Available &nbsp;
-                  <span className="badge bg-danger">&nbsp;</span> Occupied &nbsp;
-                  <span className="badge bg-warning text-dark">&nbsp;</span> Ongoing
+                  <span className="badge bg-danger">&nbsp;</span> Occupied
                 </div>
               </div>
             </div>

@@ -10,10 +10,7 @@ CREATE TABLE IF NOT EXISTS users (
 -- Rooms
 CREATE TABLE IF NOT EXISTS rooms (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  name TEXT NOT NULL,
-  description TEXT,
-  capacity INTEGER,
-  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+  name TEXT NOT NULL
 );
 
 -- Bookings: [start_hour, end_hour) in facility local time, date YYYY-MM-DD

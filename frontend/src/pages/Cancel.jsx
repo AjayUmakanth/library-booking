@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
-import { apiUrl } from '../apiBase.js';
+import { Link, useNavigate, useParams } from 'react-router-dom';
+import { apiUrl, frontendOriginHeader } from '../apiBase.js';
 
 function pad(n) {
   return String(n).padStart(2, '0');
 }
 
 export default function Cancel() {
+  const navigate = useNavigate();
   const { token } = useParams();
   const [booking, setBooking] = useState(undefined);
   const [loadError, setLoadError] = useState('');
@@ -18,7 +19,9 @@ export default function Cancel() {
     let cancelled = false;
     (async () => {
       try {
-        const res = await fetch(apiUrl(`/api/cancel/${encodeURIComponent(token)}`));
+        const res = await fetch(apiUrl(`/api/cancel/${encodeURIComponent(token)}`), {
+          headers: { ...frontendOriginHeader() },
+        });
         const json = await res.json().catch(() => ({}));
         if (!res.ok) {
           if (!cancelled) {
@@ -40,12 +43,21 @@ export default function Cancel() {
     };
   }, [token]);
 
+  useEffect(() => {
+    if (!done) return undefined;
+    const t = window.setTimeout(() => {
+      navigate('/', { replace: true });
+    }, 5000);
+    return () => window.clearTimeout(t);
+  }, [done, navigate]);
+
   async function confirmCancel() {
     setActionError('');
     setSubmitting(true);
     try {
       const res = await fetch(apiUrl(`/api/cancel/${encodeURIComponent(token)}`), {
         method: 'POST',
+        headers: { ...frontendOriginHeader() },
       });
       const json = await res.json().catch(() => ({}));
       if (!res.ok) {
@@ -65,17 +77,12 @@ export default function Cancel() {
       <div className="container py-4">
         <div className="alert alert-info">
           <h1 className="h4 alert-heading">Booking cancelled</h1>
-          <p className="mb-0">
+          <p className="mb-2">
             The reservation for <strong>{done.room_name}</strong> on{' '}
             <strong>{done.booking_date}</strong> has been cancelled.
           </p>
+          <p className="mb-0 small text-muted">Redirecting to the home page in 5 seconds…</p>
         </div>
-        <Link to="/login" className="btn btn-primary me-2">
-          Sign in
-        </Link>
-        <Link to="/" className="btn btn-outline-secondary">
-          Home
-        </Link>
       </div>
     );
   }
