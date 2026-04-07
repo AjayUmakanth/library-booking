@@ -1,119 +1,146 @@
-# Room booking system
+# Library room booking
 
-A room booking prototype with a **React (Vite) frontend** and **Express + SQLite API** running on separate dev servers.
+## Overview
 
-## Stack
+Prototype web app for **booking library-style rooms** by date and time slot. Users register, sign in, view availability per room, create bookings, manage their reservations, and cancel via a signed-in flow or a **secret link** (opaque token).  
 
-| Layer | Technology |
-|--------|------------|
-| Frontend | React 18, React Router 6, Vite 5, Bootstrap 5 (CDN) |
-| Backend | Node.js, Express, **JWT** (`jsonwebtoken`), bcrypt |
-| Database | SQLite (`better-sqlite3`) |
+The UI is themed for a university-library context (Universität Paderborn–style branding); this is a **demo**, not an official university system.
 
-## Authentication
+## Technologies
 
-- **Login** and **register** return `{ user, token }`. The token is a signed JWT (default lifetime **7 days**, configurable).
-- Protected API routes expect: **`Authorization: Bearer <token>`**.
-- The React app stores the token in **`localStorage`** and attaches it to booking/`/me` requests. **`POST /api/auth/logout`** is a no-op on the server; the client clears the token.
-- Cancellation links remain **opaque tokens** in the URL (unchanged).
+| Area | Stack |
+|------|--------|
+| **Frontend** | React 18, React Router 6, Vite 5, Bootstrap 5 (CDN) |
+| **Backend** | Node.js 18+, Express 4 |
+| **Auth** | JWT (`jsonwebtoken`), bcrypt password hashes |
+| **Database** | SQLite via `better-sqlite3` |
+| **Dev UX** | Separate dev servers (API + SPA), CORS, optional `X-Frontend-Origin` for correct cancel-link URLs |
 
-## Repository layout
+## Running locally
 
-```
-backend/          # JSON API on PORT (default 3000)
-  src/
-    app.js
-    routes/ controllers/ services/ repositories/ middleware/ utils/
-    db/  (schema.sql, sqlite.js, seed.js)
-  data/app.db   # created on first run (gitignored)
+### Prerequisites
 
-frontend/       # React SPA — Vite dev server on port 3001
-  src/
-    apiBase.js  # prepends VITE_API_URL to /api requests when set
-  public/
-  vite.config.js
-```
+- **Node.js 18 or newer** (see `engines` in `backend/package.json`)
+- **npm** (bundled with Node)
 
-## Quick start
+Native module: **`better-sqlite3`** compiles for your Node version; if install fails, run `npm install` again after switching Node versions or use `npm rebuild`.
 
-### 1. Backend
+### Backend
 
 ```bash
 cd backend
-copy .env.example .env
-# Set JWT_SECRET to a long random string (required in production)
+cp .env.example .env          # Windows: copy .env.example .env
+# Set JWT_SECRET (required for anything beyond casual local use)
 npm install
-npm run seed -- 3
+npm run seed -- 3             # confirm with y; second prompt: whether to delete users
 npm run dev
 ```
 
-API: **`http://localhost:3000`** — JSON routes under **`/api/...`**. **`GET /`** returns a short JSON description and health pointer.
+- API base: `http://localhost:3000` (default; override with `PORT` in `.env`).
+- **`GET /`** — small JSON describing the service; **`GET /api/health`** — `{ "ok": true }`.
 
-**Seed:** `npm run seed -- <numberOfRooms>` asks for **`y`** to confirm wiping **all bookings and rooms** and inserting **`Room 1` … `Room N`**. A second prompt asks whether to delete **all users** (`y` yes, anything else keeps accounts). Example: `npm run seed -- 5`.
-
-### 2. Frontend
-
-In a **second** terminal:
+### Frontend
 
 ```bash
 cd frontend
-copy .env.example .env
-# Optional: .env.development already sets VITE_API_URL for local dev
 npm install
 npm run dev
 ```
 
-App: **`http://localhost:3001`**. Use **Register** to create a user after seeding (the seed script does not add accounts).
+- App URL: **`http://localhost:3001`** (see `vite.config.js`).
+- Configure API target with **`VITE_API_URL`** (see `frontend/.env.example`; dev default is in `.env.development`).
+- **Register** a user after seeding; the seed script only creates rooms (and optionally wipes users).
 
-There is **no Vite proxy**: the browser calls the API directly at **`VITE_API_URL`** (see **`frontend/.env.example`**). Express **`FRONTEND_ORIGIN`** / dev defaults must allow that UI origin (see **`backend/.env.example`**). JWTs are sent via the **`Authorization`** header (not cookies).
+### Environment files
 
-## Environment variables
+- **Backend:** `backend/.env.example` → copy to `.env` (`FRONTEND_URL`, `FRONTEND_ORIGIN`, `JWT_SECRET`, etc.).
+- **Frontend:** `frontend/.env.example` / `.env.development` — mainly **`VITE_API_URL=http://localhost:3000`**.
 
-**`backend/.env`** (see **`backend/.env.example`**)
+## Architecture and design decisions backend
 
-| Variable | Purpose |
-|----------|---------|
-| `PORT` | API port (default `3000`) |
-| `NODE_ENV` | Set `production` only for deployed builds (affects CORS defaults) |
-| `JWT_SECRET` | Signing key for access tokens (required in production) |
-| `JWT_EXPIRES_IN` | Token lifetime (e.g. `7d`, `24h`; passed to `jsonwebtoken`) |
-| `APP_TIMEZONE` | IANA timezone for "today", slots, and session logic (default `Europe/Berlin`) |
-| `FRONTEND_URL` | Fallback for cancel / confirmation URLs when the client does not send a browser tab origin (e.g. curl). The SPA sends **`X-Frontend-Origin`**, which always matches **`window.location.origin`**, so links follow the port you actually opened even if this value is outdated. |
-| `FRONTEND_ORIGIN` | Browser origin(s) for CORS; comma-separated if needed. Must match the address bar (e.g. `http://localhost:3001` vs `http://127.0.0.1:3001`) |
-| `SQLITE_PATH` | Optional DB file path |
+- **Layered structure:** `routes` → `controllers` (HTTP) → `services` (rules) → `repositories` (SQL) keeps booking logic and persistence separate and easier to test or swap later.
+- **SQLite + single file:** Low setup cost; `schema.sql` applied on startup; a small migration rebuilds legacy `rooms` to `id` + `name` only when needed.
+- **JWT in `Authorization` bearer header:** Stateless API; no cookie session. Logout is client-side token discard (`POST /api/auth/logout` is a no-op).
+- **Timezone:** `APP_TIMEZONE` drives “today”, opening hours, and overlap logic so server behavior matches a chosen locale.
+- **CORS:** Configured for cross-origin dev (SPA on 3001, API on 3000). Custom header **`X-Frontend-Origin`** is allowed so cancel and confirmation URLs can match the real browser origin even if `FRONTEND_URL` is stale.
+- **Cancel links:** Long random **`cancel_token`** in the URL; **`GET/POST /api/cancel/:token`** do not require login (anyone with the link can cancel). Authenticated users also get **`cancelUrl`** on booking success and on **My bookings** so the same cancel page is used as for shared links.
+- **Seed script:** Interactive: always deletes **bookings** and **rooms**; second prompt controls whether **users** are deleted; then inserts `Room 1 … Room N`.
 
-**`frontend/.env`** or **`.env.development`** (see **`frontend/.env.example`**)
+## Architecture and design decisions frontend
 
-| Variable | Purpose |
-|----------|---------|
-| `VITE_API_URL` | API origin without trailing slash (dev: `http://localhost:3000`). Omit or leave empty for production when the API is served on the **same host** as the static app so requests can use relative `/api`. |
+- **SPA + client routing:** Protected routes wrap booking pages; home redirects by auth state.
+- **API base helper (`apiUrl`):** Uses `VITE_API_URL` in dev so `/api` calls hit the Express server; production can omit it when UI and API share one origin.
+- **`frontendOriginHeader()`:** Every relevant `fetch` sends the tab’s origin so the server can build correct absolute cancel links.
+- **UI:** Bootstrap for layout; institutional green theme and local branding assets under `public/branding/`.
 
-## API overview
+## AI tools
 
-| Method | Path | Auth |
-|--------|------|------|
-| POST | `/api/auth/register` | — (returns `token`) |
-| POST | `/api/auth/login` | — (returns `token`) |
-| POST | `/api/auth/logout` | — (client discards token) |
-| GET | `/api/auth/me` | optional `Bearer` |
-| GET | `/api/bookings/available?date=` | `Bearer` |
-| POST | `/api/bookings` | `Bearer` |
-| GET | `/api/bookings/mine` | `Bearer` |
-| GET | `/api/bookings/success/:id` | `Bearer` |
-| POST | `/api/bookings/:id/cancel` | `Bearer` |
-| GET/POST | `/api/cancel/:token` | — (POST cancels) |
+Parts of this repository (code, README, and related edits) were produced or refined with **AI-assisted editing** (e.g. **Cursor** and large language models). Generated content was reviewed and integrated into the project manually; behavior should always be verified by running the app and tests if you add them.
 
-## Business rules
+## Known limitations and open issues
 
-Opening hours 07:00–21:00, whole hours, 1–6 hour blocks, no overlaps (`newStart < existingEnd && newEnd > existingStart`), dates within today + 7 days, users only manage their own bookings, plus secret cancel links.
+- **No refresh tokens**; access tokens are valid until **`JWT_EXPIRES_IN`** with **no server-side revocation** (no logout blocklist).
+- **JWTs in `localStorage`** are convenient but **XSS-sensitive**; production hardening would use tighter CSP, httpOnly cookies, or short-lived tokens + refresh flows.
+- **No automated tests** in the repository.
+- **Cancel by token** is powerful: anyone with the link can cancel; links must be treated like secrets.
+- **Production deployment** not documented here; you would set `NODE_ENV=production`, real **`FRONTEND_ORIGIN`** / **`FRONTEND_URL`**, HTTPS, and a strong **`JWT_SECRET`**.
 
-## Production notes
+## REST API reference
 
-- Use a strong **`JWT_SECRET`** and HTTPS. Shorten **`JWT_EXPIRES_IN`** if you need tighter security.
-- Set **`NODE_ENV=production`**, **`FRONTEND_ORIGIN`**, and **`FRONTEND_URL`** to your real public UI URL(s). In production the backend does **not** use the extra localhost dev origins from code.
-- Storing JWTs in **`localStorage`** is vulnerable to **XSS**; mitigations include CSP, sanitizing HTML, and (for stricter setups) **httpOnly cookies** with a BFF or short-lived tokens + refresh rotation.
-- There is **no server-side logout / token revocation** in this MVP; compromised tokens stay valid until they expire unless you add a blocklist or versioning.
+Base path: **`/api`** (except `GET /` and `GET /api/health` on the same host as the API).
 
-## Known limitations
+Unless noted, JSON bodies/responses use `application/json`. Protected booking routes expect:
 
-- MVP: no refresh tokens, no token revocation, no automated tests.
+```http
+Authorization: Bearer <jwt>
+```
+
+The SPA also sends **`X-Frontend-Origin: <tab origin>`** where applicable so cancel URLs match the UI.
+
+### General
+
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| GET | `/` | — | Service blurb, `health` path, CORS hint. |
+| GET | `/api/health` | — | `{ "ok": true }`. |
+
+### Auth (`/api/auth`)
+
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| POST | `/api/auth/register` | — | Body: user fields. Returns `{ user, token }`. |
+| POST | `/api/auth/login` | — | Body: `email`, `password`. Returns `{ user, token }`. |
+| POST | `/api/auth/logout` | — | No-op server-side; client drops token. |
+| GET | `/api/auth/me` | Optional Bearer | Current user or 401 if invalid/missing token. |
+
+### Bookings (`/api/bookings`)
+
+All routes use **`requireAuth`** (valid Bearer required).
+
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/api/bookings/available?date=YYYY-MM-DD` | Availability grid: rooms, slots, selected date bounds, timezone. |
+| POST | `/api/bookings` | Create booking (room, date, start, duration, purpose). Returns `{ booking, cancelUrl }`. |
+| GET | `/api/bookings/mine` | `{ future, past }`; future items include **`cancelUrl`**. |
+| GET | `/api/bookings/success/:id` | Booking detail + **`cancelUrl`** for confirmation screen. |
+| POST | `/api/bookings/:id/cancel` | Cancel as owner (still available API-side; main UI uses token cancel link). |
+
+### Public cancel (`/api/cancel`)
+
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/api/cancel/:token` | Load booking preview for cancel page (no JWT). |
+| POST | `/api/cancel/:token` | Perform cancellation (no JWT). |
+
+### Errors
+
+- **4xx/5xx** responses typically include JSON `{ error: "..." }` or `{ errors: { field: "..." } }` for validation.
+- Unknown **`/api/...`** routes: **`404`** `{ "error": "Not found" }`.
+- Unhandled server error: **`500`** `{ "error": "An unexpected error occurred." }`.
+
+### Business rules (enforced in services)
+
+- Opening hours **07:00–21:00**, whole hours, **1–6** hour blocks.  
+- **No overlapping** bookings per room/date.  
+- Booking dates within **today + 7 days** (per validation).  
+- Users may only read/cancel **their own** bookings on authenticated routes; cancel token bypasses login but targets one booking.
