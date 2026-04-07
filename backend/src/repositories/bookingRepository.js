@@ -89,11 +89,6 @@ function deleteById(id) {
   return info.changes > 0;
 }
 
-function deleteByIdAndUserId(id, userId) {
-  const info = db.prepare('DELETE FROM bookings WHERE id = ? AND user_id = ?').run(id, userId);
-  return info.changes > 0;
-}
-
 module.exports = {
   countOverlapping,
   findByRoomAndDate,
@@ -102,5 +97,4 @@ module.exports = {
   findByCancelToken,
   findByUserId,
   deleteById,
-  deleteByIdAndUserId,
 };

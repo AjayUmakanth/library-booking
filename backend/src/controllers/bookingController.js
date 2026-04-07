@@ -128,14 +128,6 @@ function getMine(req, res) {
   });
 }
 
-function postCancelMine(req, res) {
-  const result = bookingService.cancelForUser(req.params.id, req.user.id);
-  if (!result.ok) {
-    return res.status(400).json({ error: result.error });
-  }
-  return res.json({ ok: true });
-}
-
 function getCancelToken(req, res) {
   const token = req.params.token;
   const preview = bookingService.getCancelPreview(token);
@@ -172,7 +164,6 @@ module.exports = {
   postCreate,
   getSuccess,
   getMine,
-  postCancelMine,
   getCancelToken,
   postCancelToken,
 };

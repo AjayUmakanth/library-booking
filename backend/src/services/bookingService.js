@@ -120,22 +120,6 @@ function listMine(userId) {
   return { future, past };
 }
 
-function cancelForUser(bookingId, userId) {
-  const id = parseInt(bookingId, 10);
-  if (!Number.isFinite(id)) {
-    return { ok: false, error: 'Invalid booking.' };
-  }
-  const booking = bookingRepository.findById(id);
-  if (!booking || booking.user_id !== userId) {
-    return { ok: false, error: 'Booking not found or you do not have permission to cancel it.' };
-  }
-  const deleted = bookingRepository.deleteByIdAndUserId(id, userId);
-  if (!deleted) {
-    return { ok: false, error: 'Could not cancel this booking.' };
-  }
-  return { ok: true };
-}
-
 function getCancelPreview(token) {
   if (!token || typeof token !== 'string' || token.length < 16) {
     return { ok: false, error: 'invalid' };
@@ -164,7 +148,6 @@ module.exports = {
   buildSlotsForRoom,
   createBooking,
   listMine,
-  cancelForUser,
   getCancelPreview,
   cancelByToken,
   OPEN_HOUR,
