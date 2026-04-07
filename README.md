@@ -62,7 +62,7 @@ npm run dev
 
 - Backend is **Express** with layers: **routes → controllers → services → SQLite repositories**.
 - **Auth** is **JWT** in the `**Authorization`** header; the API is stateless.
-- `**APP_TIMEZONE**` drives “today”, opening hours, and slot/overlap rules.
+- `**APP_TIMEZONE`** drives “today”, opening hours, and slot/overlap rules.
 - **Cancellation** uses a secret **token in the URL** and `**GET` / `POST /api/cancel/:token`** (not an authenticated “delete by booking id”).
 - **Cross-origin dev:** `**X-Frontend-Origin`** on requests so **cancel URLs** match the real browser tab when SPA and API run on different ports.
 - **UI:** Bootstrap; branding assets under `**public/branding/`**.
@@ -70,8 +70,7 @@ npm run dev
 
 ## AI tools
 
-- Some **code** and **documentation** were drafted or edited with **AI-assisted tools** (e.g. **Cursor** / large language models) and then **reviewed manually**.
-- **Verify behavior** by running the app (and any tests you add).
+- Some **code** and **documentation** were drafted or edited with **AI-assisted tools** (e.g. **Cursor** / large language models) and then **reviewed, updated and integrated manually**.
 
 ## Known limitations and open issues
 
@@ -137,7 +136,7 @@ All routes use `**requireAuth**` (valid Bearer required).
 ### Errors
 
 - **4xx/5xx** responses typically include JSON `{ error: "..." }` or `{ errors: { field: "..." } }` for validation.
-- Unknown `**/api/...`** routes: `**404**` `{ "error": "Not found" }`.
+- Unknown `**/api/...`** routes: `**404`** `{ "error": "Not found" }`.
 - Unhandled server error: `**500**` `{ "error": "An unexpected error occurred." }`.
 
 ### Business rules (enforced in services)
@@ -145,5 +144,5 @@ All routes use `**requireAuth**` (valid Bearer required).
 - Opening hours **07:00–21:00**, whole hours, **1–6** hour blocks.  
 - **No overlapping** bookings per room/date.  
 - Booking dates within **today + 7 days** (per validation).  
-- Users may only read **their own** bookings on authenticated routes; cancellation uses `**/api/cancel/:token`** (from `**cancelUrl**`), which does not require login.
+- Users may only read **their own** bookings on authenticated routes; cancellation uses `**/api/cancel/:token`** (from `**cancelUrl`**), which does not require login.
 
